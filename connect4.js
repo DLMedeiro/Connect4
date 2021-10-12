@@ -1,8 +1,9 @@
 /** Connect Four
  *
- * Player 1 and 2 alternate turns. On each turn, a piece is dropped down a
- * column until a player gets four-in-a-row (horiz, vert, or diag) or until
+ * Player 1 and 2 alternate turns.
+ * On each turn, a piece is dropped down a column until a player gets four-in-a-row (horiz, vert, or diag) or until
  * board fills (tie)
+ * On page load makeBoard and makeHtmlboard run to set up the game board
  */
 
  let WIDTH = 7;
@@ -11,33 +12,30 @@
  let currPlayer = 1; // active player: 1 or 2
  let board = []; // array of rows, each row is array of cells  (board[y][x])
  
- /** makeBoard: create in-JS board structure:
-  *    board = array of rows, each row is array of cells  (board[y][x])
-  */
- 
+
+//  MakeBoard: Creates the non-visual empty array for the game board based on Height and Width
  function makeBoard() {
-   // TODO: set "board" to empty HEIGHT x WIDTH matrix array
    for (let y = 0; y < HEIGHT; y++){
-     //MY ATTEMPT 
+     //MY ATTEMPT: Transforms "board" into an array with the length matching the value of "width".  Each element of the array is undefined at the start of the game 
      board.push(Array(WIDTH).fill());
-     //SOLUTION
-     // Question: {length:WIDTH}
-     // board.push(Array.from({length:WIDTH}));
+
+     //SOLUTION: board.push(Array.from({length:WIDTH}));
    }
  }
  
- /** makeHtmlBoard: make HTML table and row of column tops. */
- 
+  // makeHtmlBoard: Creates the visual game board (htmlBoard)
  function makeHtmlBoard() {
-   // TODO: get "htmlBoard" variable from the item in HTML w/ID of "board"
+  
+     // Part 1: Create top row for player selection
+    // a. Create the top table row
+    // b. Use "Width" to identify the 'x' location and quantity of cells to add into the top row
+    // c. Event listeners added to each cell initiate game play later on
+
    let htmlBoard = document.getElementById('board');
-   // TODO: add comment for this code
-     // When function runs - create table row ('tr') with an ID of 'column-top).  Each cell created in the row through the for loop will listen for the 'handleClick' function
    let top = document.createElement("tr");
    top.setAttribute("id", "column-top");
    top.addEventListener("click", handleClick);
- 
-   // For loop creates each cell above each column for the width of the board.  ID's are set based on position, starting at 0 with the ending value based on the width of the board.
+
    for (let x = 0; x < WIDTH; x++) {
      let headCell = document.createElement("td");
      headCell.setAttribute("id", x);
@@ -45,26 +43,25 @@
    }
    htmlBoard.append(top);
  
-   // TODO: add comment for this code
-     // This for loop creates the game board portion.  
+  //  Part 2: Create the remaining cells of the game board.
+  // a. Create the number of rows based on "height"
+  // b. Create the number of cells in each row based on "width"
+  // c. Create individual IDs based on x and y coordinates to track game play
+    
    for (let y = 0; y < HEIGHT; y++) {
      const row = document.createElement("tr");
-     // Initiates each of the rows for the below for loop to populate the row contents
      for (let x = 0; x < WIDTH; x++) {
-       // Creates each cell within the row
        const cell = document.createElement("td");
        cell.setAttribute("id", `${y}-${x}`);
-       // Sets the ID of each cell to y and x coordinates (row, column)
        row.append(cell);
      }
      htmlBoard.append(row);
    }
  }
  
- /** findSpotForCol: given column x, return top empty y (null if filled) */
- // Result produces the value requried for y within placeInTable
+//  findSpotForCol: using the 'x' value produced within makeHtmlBoard, this function returns the y value of where the game piece should be placed
+// The 'y' value provided will be located in the last row unless that cell is already occupied.  If occupied the 'y' value will be the next available value starting from the bottom of the board and moving upward.
  function findSpotForCol(x) {
-   // TODO: write the real version of this, rather than always returning 0
    for (let y = HEIGHT - 1; y >=0 ; y--){
      if (!board[y][x]){
        return y
@@ -74,41 +71,49 @@
    }
    
  
- /** placeInTable: update DOM to place piece into HTML table of board */
+//  placeInTable: Creates the visual game pieces when each player makes a selection
+// Placement is determined by the x value generated in makeHtmlBoard and the y value is generated in findSpotForCol
+// 'y' provides which column
+// 'x' provides which row
  function placeInTable(y, x) {
-   // TODO: make a div and insert into correct table cell
    let filledCell = document.getElementById(`${y}-${x}`);
-   if (currPlayer === 1) {
+   if (currPlayer == 1) {
      // Create P1 piece on baord
      let move = document.createElement('div');
      move.classList.add('piece','p1');
-     board[y][x] = `${currPlayer}`
+     board[y][x] = currPlayer;
      filledCell.appendChild(move);
-     currPlayer += 1;
    } else {
      // Create P2 piece on baord
      let move = document.createElement('div');
      move.classList.add('piece');
      move.classList.add('p2');
-     board[y][x] = `${currPlayer}`
+     board[y][x] = currPlayer;
      filledCell.appendChild(move);
-     currPlayer = 1
    }
  
+   //  SOLUTION:
+   /*function placeInTable(y, x) {
+     const piece = document.createElement('div');
+     piece.classList.add('piece');
+     piece.classList.add(`p${currPlayer}`);
+     piece.style.top = -50 * (y + 2);
+   
+     const spot = document.getElementById(`${y}-${x}`);
+     spot.append(piece);
+   }
+    */
  
  }
- 
+
  /** endGame: announce game end */
- 
  function endGame(msg) {
-   // TODO: pop up alert message
-   alert('Game Over')
+   alert(msg)
  }
  
- /** handleClick: handle click of column top to play piece */
- 
+ /** handleClick: handle click of column top to play piece - click runs functions listed above*/
  function handleClick(evt) {
-   // get x from ID if clicked cell
+   // get x from ID if cell is clicked
    let x = +evt.target.id;
  
    // get next spot in column (if none, ignore click)
@@ -119,42 +124,36 @@
  
    // place piece in board and add to HTML table
    // TODO: add line to update in-memory board
- 
-   // Question: In-memory board?
-   // Solution:
-     // board[y][x] = currPlayer;
+   // Solution: board[y][x] = currPlayer;
+
    placeInTable(y, x);
- 
+
    // check for win
    if (checkForWin()) {
      return endGame(`Player ${currPlayer} won!`);
    }
  
-   // check for tie
-   // TODO: check if all cells in board are filled; if so call, call endGame
- 
- 
+   // check for tie: starting with the board, look at each row, then each cell.  If all are true the game ends in a tie
+   if (board.every(row => row.every(cell => cell))) {
+    return endGame('Tie Game!');
+  }
+
    // switch players
-   // TODO: switch currPlayer 1 <-> 2
-   // Question: Is this required if included in placeInTable function?
- 
-   // if (currPlayer === 1){
-   //   console.log(currPlayer)
-   //   return 1
-   // } else {
-   //   console.log(currPlayer)
-   //  return 2
-   // }
+   if (currPlayer == 1){
+     currPlayer = 2;
+   } else {
+     currPlayer = 1;
+   }
  }
  
  /** checkForWin: check board cell-by-cell for "does a win start here?" */
- 
  function checkForWin() {
    function _win(cells) {
      // Check four cells to see if they're all color of current player
      //  - cells: list of four (y, x) cells
      //  - returns true if all are legal coordinates & all match currPlayer
  
+    //  Validates the x/y values produced within the horiz, vert, and diag parameters are on the board and have the same player assigned
      return cells.every(
        ([y, x]) =>
          y >= 0 &&
@@ -165,8 +164,7 @@
      );
    }
  
-   // TODO: read and understand this code. Add comments to help you.
- 
+  //  After each click function, below will evaluate the current x/y values to see if any conditions are met.  
    for (var y = 0; y < HEIGHT; y++) {
      for (var x = 0; x < WIDTH; x++) {
        var horiz = [[y, x], [y, x + 1], [y, x + 2], [y, x + 3]];
